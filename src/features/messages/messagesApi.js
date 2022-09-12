@@ -26,15 +26,17 @@ export const messagesApi = apiSlice.injectEndpoints({
         });
         try {
           await cacheDataLoaded;
-          socket.on("messageAdded", (data) => {
+          socket.on("messageAdded", async (data) => {
             // eslint-disable-next-line eqeqeq
             if (data?.data?.conversationId == arg) {
-              updateCachedData((draft) => {
+              await updateCachedData((draft) => {
                 draft.data.unshift(data.data);
               });
             }
           });
-        } catch (err) {}
+        } catch (err) {
+          console.log(err);
+        }
       },
     }),
     getMoreMassages: builder.query({
@@ -46,17 +48,11 @@ export const messagesApi = apiSlice.injectEndpoints({
           const { data } = await queryFulfilled;
 
           if (data.length > 0) {
-            // this is printing in the console
-            console.log(data);
-
-            dispatch(
+            await dispatch(
               apiSlice.util.updateQueryData(
                 "getMessages",
                 id.toString(),
                 (draft) => {
-                  // but this is not printing
-                  console.log(JSON.stringify(draft));
-
                   return {
                     data: [...draft.data, ...data],
                     totalCount: draft.totalCount,

@@ -31,8 +31,9 @@ export const conversationsApi = apiSlice.injectEndpoints({
 
         try {
           await cacheDataLoaded;
-          socket.on("conversationEdited", (data) => {
-            updateCachedData((draft) => {
+          // updating cache after editing a conversations
+          socket.on("conversationEdited", async (data) => {
+            await updateCachedData((draft) => {
               const conversation = draft.data.find(
                 // eslint-disable-next-line eqeqeq
                 (c) => c.id == data?.data?.id
@@ -46,9 +47,9 @@ export const conversationsApi = apiSlice.injectEndpoints({
               }
             });
           });
-          // updating cache after adding a converstations
-          socket.on("conversationAdded", (data) => {
-            updateCachedData((draft) => {
+          // updating cache after adding a conversations
+          socket.on("conversationAdded", async (data) => {
+            await updateCachedData((draft) => {
               if (data?.data.participants.includes(arg)) {
                 draft?.data?.unshift(data.data);
               }
@@ -68,12 +69,11 @@ export const conversationsApi = apiSlice.injectEndpoints({
           const conversations = await queryFulfilled;
           if (conversations?.data?.length > 0) {
             // update conversation cache pessimistically start
-            dispatch(
+            await dispatch(
               apiSlice.util.updateQueryData(
                 "getConversations",
                 email,
                 (draft) => {
-                  console.log(JSON.stringify(draft));
                   return {
                     data: [...draft.data, ...conversations.data],
                     totalCount: Number(draft.totalCount),
@@ -100,7 +100,7 @@ export const conversationsApi = apiSlice.injectEndpoints({
         try {
           const conversation = await queryFulfilled;
 
-        // we don't need to update the cache here because we are updating the cache on socket event so if we do the update here then it will be double conversations in the ui
+          // we don't need to update the cache here because we are updating the cache on socket event so if we do the update here then it will be double conversations in the ui
 
           // silent entry to the message
           if (conversation?.data?.id) {
@@ -111,7 +111,7 @@ export const conversationsApi = apiSlice.injectEndpoints({
               (user) => user.email !== arg.sender
             );
 
-            dispatch(
+            await dispatch(
               messagesApi.endpoints.addMessage.initiate({
                 conversationId: conversation?.data?.id,
                 sender: senderUser,
@@ -121,7 +121,9 @@ export const conversationsApi = apiSlice.injectEndpoints({
               })
             );
           }
-        } catch (err) {}
+        } catch (err) {
+          console.log(err);
+        }
       },
     }),
     editConversation: builder.mutation({
@@ -133,19 +135,20 @@ export const conversationsApi = apiSlice.injectEndpoints({
       async onQueryStarted(arg, { queryFulfilled, dispatch }) {
         // cache update here is unnecessary because we are updating cache when listening to the socket
 
-        // // optimistic cache update start
-        const pathResult = dispatch(
-          apiSlice.util.updateQueryData(
-            "getConversations",
-            arg.sender,
-            (draft) => {
-              // eslint-disable-next-line eqeqeq
-              const draftConversation = draft.data.find((c) => c.id == arg.id);
-              draftConversation.message = arg.data.message;
-              draftConversation.timestamp = arg.data.timestamp;
-            }
-          )
-        );
+        // unnecessary code
+        // optimistic cache update start
+        // const pathResult = await dispatch(
+        //   apiSlice.util.updateQueryData(
+        //     "getConversations",
+        //     arg.sender,
+        //     (draft) => {
+        //       // eslint-disable-next-line eqeqeq
+        //       const draftConversation = draft.data.find((c) => c.id == arg.id);
+        //       draftConversation.message = arg.data.message;
+        //       draftConversation.timestamp = arg.data.timestamp;
+        //     }
+        //   )
+        // );
         // // optimistic cache update end
 
         try {
@@ -158,7 +161,7 @@ export const conversationsApi = apiSlice.injectEndpoints({
               (user) => user.email !== arg.sender
             );
 
-            const res = await dispatch(
+            await dispatch(
               messagesApi.endpoints.addMessage.initiate({
                 conversationId: conversation?.data?.id,
                 sender: senderUser,
@@ -166,22 +169,26 @@ export const conversationsApi = apiSlice.injectEndpoints({
                 message: arg.data.message,
                 timestamp: arg.data.timestamp,
               })
-            ).unwrap();
-
-            // update messages cache pessimistically start
-            dispatch(
-              apiSlice.util.updateQueryData(
-                "getMessages",
-                res.conversationId.toString(),
-                (draft) => {
-                  draft.push(res);
-                }
-              )
             );
+
+            // cache update here is unnecessary because we are updating cache when listening to the socket
+
+            // unnecessary code
+            // update messages cache pessimistically start
+            // await dispatch(
+            //   apiSlice.util.updateQueryData(
+            //     "getMessages",
+            //     res.conversationId.toString(),
+            //     (draft) => {
+            //       draft.data.push(res);
+            //     }
+            //   )
+            // );
             // update messages cache pessimistically end
           }
         } catch (err) {
-          pathResult.undo();
+          console.log(err);
+          // pathResult.undo();
         }
       },
     }),
