@@ -1,0 +1,3 @@
+[submodule "chat-server"]
+	path = chat-server
+	url = https://d09fc3c7-ec0f-438d-b7db-c1e33aa90051@api.glitch.com/git/redux-chat-application

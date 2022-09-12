@@ -71,7 +71,7 @@ export default function ChatItems() {
                 loader={<h4>Loading...</h4>}
                 height={window.innerHeight - 129}
             >
-                {conversations.map((conversation) => {
+                {conversations?.map((conversation) => {
                     const { id, message, timestamp } = conversation;
                     const { email } = user || {};
                     const { name, email: partnerEmail } = getPartnerInfo(
@@ -80,7 +80,7 @@ export default function ChatItems() {
                     );
 
                     return (
-                        <li key={id}>
+                        <li key={Math.random()}>
                             <Link to={`/inbox/${id}`}>
                                 <ChatItem
                                     avatar={gravatarUrl(partnerEmail, {
