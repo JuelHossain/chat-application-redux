@@ -9,7 +9,7 @@ const baseQuery = fetchBaseQuery({
     if (token) {
       headers.set("Authorization", `Bearer ${token}`);
     }
-
+    headers.set("mode", "no-cors");
     return headers;
   },
 });

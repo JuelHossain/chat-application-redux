@@ -27,10 +27,10 @@ export const messagesApi = apiSlice.injectEndpoints({
         });
         try {
           await cacheDataLoaded;
-          socket.on("messageAdded", async (data) => {
+          socket.on("messageAdded", (data) => {
             // eslint-disable-next-line eqeqeq
             if (data?.data?.conversationId == arg) {
-              await updateCachedData((draft) => {
+              updateCachedData((draft) => {
                 draft.data.unshift(data.data);
               });
             }
