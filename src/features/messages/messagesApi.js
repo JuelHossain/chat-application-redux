@@ -1,11 +1,12 @@
 import { io } from "socket.io-client";
+import { apiURL, messagePerPage } from "../../utils/defaults";
 import { apiSlice } from "../api/apiSlice";
 
 export const messagesApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getMessages: builder.query({
       query: (id) =>
-        `/messages?conversationId=${id}&_sort=timestamp&_order=desc&_page=1&_limit=${process.env.REACT_APP_MESSAGES_PER_PAGE}`,
+        `/messages?conversationId=${id}&_sort=timestamp&_order=desc&_page=1&_limit=${messagePerPage}`,
       transformResponse: (apiResponse, meta) => {
         const totalCount = meta.response.headers.get("X-Total-Count");
         return { data: apiResponse, totalCount };
@@ -15,7 +16,7 @@ export const messagesApi = apiSlice.injectEndpoints({
         { updateCachedData, cacheDataLoaded, cacheEntryRemoved }
       ) => {
         // create socket
-        const socket = io(process.env.REACT_APP_API_URL, {
+        const socket = io(apiURL, {
           reconnectionDelay: 1000,
           reconnection: true,
           reconnectionAttemps: 10,
@@ -41,7 +42,7 @@ export const messagesApi = apiSlice.injectEndpoints({
     }),
     getMoreMassages: builder.query({
       query: ({ id, page }) =>
-        `/messages?conversationId=${id}&_sort=timestamp&_order=desc&_page=${page}&_limit=${process.env.REACT_APP_MESSAGES_PER_PAGE}`,
+        `/messages?conversationId=${id}&_sort=timestamp&_order=desc&_page=${page}&_limit=${messagePerPage}`,
 
       async onQueryStarted({ id }, { queryFulfilled, dispatch }) {
         try {

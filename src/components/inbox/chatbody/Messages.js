@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useDispatch, useSelector } from "react-redux";
 import { messagesApi } from "../../../features/messages/messagesApi";
+import { messagePerPage } from "../../../utils/defaults";
 import Message from "./Message";
 
 export default function Messages({ messages = [], totalCount }) {
@@ -30,10 +31,7 @@ export default function Messages({ messages = [], totalCount }) {
 
   useEffect(() => {
     if (totalCount > 0) {
-      const more =
-        Math.ceil(
-          totalCount / Number(process.env.REACT_APP_MESSAGES_PER_PAGE)
-        ) > page;
+      const more = Math.ceil(totalCount / Number(messagePerPage)) > page;
 
       setHasMore(more);
     }

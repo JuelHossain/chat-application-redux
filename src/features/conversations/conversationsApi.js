@@ -1,4 +1,5 @@
 import io from "socket.io-client";
+import { apiURL, conversationPerPage } from "../../utils/defaults";
 import { apiSlice } from "../api/apiSlice";
 import { messagesApi } from "../messages/messagesApi";
 
@@ -6,7 +7,7 @@ export const conversationsApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getConversations: builder.query({
       query: (email) =>
-        `/conversations?participants_like=${email}&_sort=timestamp&_order=desc&_page=1&_limit=${process.env.REACT_APP_CONVERSATIONS_PER_PAGE}`,
+        `/conversations?participants_like=${email}&_sort=timestamp&_order=desc&_page=1&_limit=${conversationPerPage}`,
       transformResponse(apiResponse, meta) {
         const totalCount = meta.response.headers.get("X-Total-Count");
         return {
@@ -19,7 +20,7 @@ export const conversationsApi = apiSlice.injectEndpoints({
         { updateCachedData, cacheDataLoaded, cacheEntryRemoved }
       ) {
         // create socket
-        const socket = io(process.env.REACT_APP_API_URL, {
+        const socket = io(apiURL, {
           reconnectionDelay: 1000,
           reconnection: true,
           reconnectionAttemps: 10,
@@ -27,6 +28,7 @@ export const conversationsApi = apiSlice.injectEndpoints({
           agent: false,
           upgrade: false,
           rejectUnauthorized: false,
+          withCredentials: true,
         });
 
         try {
@@ -63,7 +65,7 @@ export const conversationsApi = apiSlice.injectEndpoints({
     }),
     getMoreConversations: builder.query({
       query: ({ email, page }) =>
-        `/conversations?participants_like=${email}&_sort=timestamp&_order=desc&_page=${page}&_limit=${process.env.REACT_APP_CONVERSATIONS_PER_PAGE}`,
+        `/conversations?participants_like=${email}&_sort=timestamp&_order=desc&_page=${page}&_limit=${conversationPerPage}`,
       async onQueryStarted({ email }, { queryFulfilled, dispatch }) {
         try {
           const conversations = await queryFulfilled;

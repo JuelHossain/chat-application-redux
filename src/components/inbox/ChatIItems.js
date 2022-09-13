@@ -8,6 +8,7 @@ import {
     conversationsApi,
     useGetConversationsQuery,
 } from "../../features/conversations/conversationsApi";
+import { conversationPerPage } from "../../utils/defaults";
 import getPartnerInfo from "../../utils/getPartnerInfo";
 import Error from "../ui/Error";
 import ChatItem from "./ChatItem";
@@ -42,7 +43,7 @@ export default function ChatItems() {
             const more =
                 Math.ceil(
                     totalCount /
-                        Number(process.env.REACT_APP_CONVERSATIONS_PER_PAGE)
+                        Number(conversationPerPage)
                 ) > page;
 
             setHasMore(more);
