@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
-  conversationsApi,
   useAddConversationMutation,
   useEditConversationMutation,
+  useGetConversationQuery,
 } from "../../features/conversations/conversationsApi";
 import { useGetUserQuery } from "../../features/users/usersApi";
 import isValidEmail from "../../utils/isValidEmail";
@@ -17,12 +17,19 @@ export default function Modal({ open, control }) {
   const { user: loggedInUser } = useSelector((state) => state.auth) || {};
   const { email: myEmail } = loggedInUser || {};
   const dispatch = useDispatch();
-  const [responseError, setResponseError] = useState("");
-  const [conversation, setConversation] = useState(undefined);
+
+  const [checkConversation, setCheckConversation] = useState(false);
 
   const { data: participant } = useGetUserQuery(to, {
     skip: !userCheck,
   });
+  const { data: conversation, error: responseError } = useGetConversationQuery(
+    {
+      userEmail: myEmail,
+      participantEmail: to,
+    },
+    { skip: !checkConversation }
+  );
 
   const [
     addConversation,
@@ -32,25 +39,16 @@ export default function Modal({ open, control }) {
     editConversation,
     { data: editedData, isSuccess: isEditConversationSuccess },
   ] = useEditConversationMutation();
-
+  console.log(conversation);
+  console.log(checkConversation);
   useEffect(() => {
     if (participant?.length > 0 && participant[0].email !== myEmail) {
       // check conversation existance
-      dispatch(
-        conversationsApi.endpoints.getConversation.initiate({
-          userEmail: myEmail,
-          participantEmail: to,
-        })
-      )
-        .unwrap()
-        .then((data) => {
-          setConversation(data);
-        })
-        .catch((err) => {
-          setResponseError("There was a problem!");
-        });
+      setCheckConversation(true);
+    } else {
+      setCheckConversation(false);
     }
-  }, [participant, dispatch, myEmail, to]);
+  }, [participant, dispatch, myEmail]);
 
   const navigate = useNavigate();
   // listen conversation add/edit success
@@ -58,7 +56,6 @@ export default function Modal({ open, control }) {
     if (isAddConversationSuccess || isEditConversationSuccess) {
       control();
       navigate(`/inbox/${editedData?.id || addedData?.id}`);
-   
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAddConversationSuccess, isEditConversationSuccess]);
@@ -78,10 +75,13 @@ export default function Modal({ open, control }) {
       // check user API
       setUserCheck(true);
       setTo(value);
+    } else {
+      setUserCheck(false);
+      setTo("");
     }
   };
 
-  const handleSearch = debounceHandler(doSearch, 500);
+  const handleSearch = debounceHandler(doSearch, 200);
 
   const handleSubmit = (e) => {
     e.preventDefault();
