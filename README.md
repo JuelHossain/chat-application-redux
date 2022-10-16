@@ -1,5 +1,5 @@
 # Project Plan - Chat Application with RTK Query
-
+[check live site here](https://redux-chat-application.netlify.app)
 ## Requirement Analysis
 
 1. user can register. afer registering, user will be automatically logged in, we will store login info to localstorage (for login persistance) and redirected to inbox page
